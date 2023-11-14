@@ -2,12 +2,17 @@ use axum::{
     body::Bytes,
     extract::State,
     http::{header, HeaderValue, StatusCode},
-    routing::{post},
+    routing::post,
     Json, Router,
 };
-use serde::{Deserialize, Serialize};
+use cloudevents::{
+    binding::rdkafka::{FutureRecordExt, MessageRecord},
+    Event,
+};
+use rdkafka::producer::{FutureProducer, FutureRecord};
+use rdkafka::{config::ClientConfig, util::Timeout};
+use serde::Serialize;
 use std::{net::SocketAddr, sync::Arc, time::Duration};
-use std::sync::Mutex;
 use tower::ServiceBuilder;
 use tower_http::{
     timeout::TimeoutLayer,
@@ -16,14 +21,6 @@ use tower_http::{
 };
 use tracing_subscriber::prelude::__tracing_subscriber_SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
-
-use kafka::producer::{Producer, Record, RequiredAcks};
-
-#[derive(Clone)]
-struct AppState {
-    kafka_producer: Arc<Mutex<Producer>>,
-    // kafka_producer: String,
-}
 
 #[tokio::main]
 async fn main() {
@@ -65,18 +62,15 @@ async fn main() {
             header::CONTENT_TYPE,
             HeaderValue::from_static("application/octet-stream"),
         );
-    // TODO: Replace with actual producer
-    let producer = Producer::from_hosts(vec!("localhost:9092".to_owned()))
-            .with_ack_timeout(Duration::from_secs(1))
-            .with_required_acks(RequiredAcks::One).create().unwrap();
-    let shared_state = AppState {
-        // kafka_producer: "SET".to_string()
-        kafka_producer: Arc::new(Mutex::new(producer)),
-    };
+    let producer: FutureProducer = ClientConfig::new()
+        .set("bootstrap.servers", "localhost:9092")
+        .set("message.timeout.ms", "5000")
+        .create()
+        .expect("Producer creation error");
 
     let app = Router::new()
         .route("/event", post(create_event))
-        .with_state(shared_state)
+        .with_state(producer)
         .layer(middleware);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
@@ -87,32 +81,40 @@ async fn main() {
         .unwrap();
 }
 
-#[derive(Deserialize, Serialize)]
-struct CreateEvent {
-    event_type: String,
-}
-
 #[derive(Serialize)]
-struct Event {
-    event_type: String,
+struct EventResponse {
+    success: bool,
+    partition: i32,
+    offset: i64,
 }
 
+#[axum::debug_handler]
 async fn create_event(
-    State(_state): State<AppState>,
-    Json(payload): Json<CreateEvent>,
-) -> (StatusCode, Json<Event>) {
-    let j = serde_json::to_string(&payload);
-    match j {
-        Ok(j) => {
-            let mut kp = _state.kafka_producer.lock().expect("mutex was poisoned");
-            kp.send(&Record::from_value("user-behaviour.events", j)).unwrap()
-        },
-        Err(_j) => {}
-    }
-
-
-    let event = Event {
-        event_type: payload.event_type,
-    };
-    (StatusCode::CREATED, Json(event))
+    State(producer): State<FutureProducer>,
+    Json(event): Json<Event>,
+) -> (StatusCode, Json<EventResponse>) {
+    let message_record =
+        MessageRecord::from_event(event).expect("error while serializing the event");
+    let (i, j) = producer
+        .send(
+            FutureRecord::to("user-behaviour.events")
+                .key("some_event")
+                .message_record(&message_record),
+            Timeout::After(Duration::from_secs(1)),
+        )
+        .await
+        .unwrap();
+    tracing::info!(
+        "message published to user-bheaviour.events topic, {:?} {:?}",
+        i,
+        j
+    );
+    return (
+        StatusCode::OK,
+        Json(EventResponse {
+            success: true,
+            partition: i,
+            offset: j,
+        }),
+    );
 }

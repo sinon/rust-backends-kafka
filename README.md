@@ -12,3 +12,31 @@ Run zookeeper, kafka and create needed topic:
 
 bin/kafka-topics.sh --create --topic user-behaviour.events --replication-factor 1 --partitions 2 --zookeeper localhost:2181
 ```
+
+Sample Request:
+```
+curl --request POST \
+  --url http://localhost:3000/event \
+  --header 'Content-Type: application/json' \
+  --header 'User-Agent: insomnia/2023.5.8' \
+  --data '{
+  "data": {
+    "subscription": "projects/test-project/subscriptions/my-subscription",
+    "message": {
+      "attributes": {
+        "attr1": "attr1-value"
+      },
+      "data": "dGVzdCBtZXNzYWdlIDM=",
+      "messageId": "message-id",
+      "publishTime": "2021-02-05T04:06:14.109Z",
+      "orderingKey": "ordering-key"
+    }
+  },
+  "datacontenttype": "application/json",
+  "id": "3103425958877813",
+  "source": "//pubsub.googleapis.com/projects/test-project/topics/my-topic",
+  "specversion": "1.0",
+  "time": "2021-02-05T04:06:14.109Z",
+  "type": "google.cloud.pubsub.topic.v1.messagePublished"
+}'
+```

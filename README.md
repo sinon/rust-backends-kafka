@@ -1,6 +1,12 @@
-# kafka-event-api
+# Kafka producers/consumers
+
+### producer-api
 
 Axum based API which receives events via HTTP API and publishes them to kafka topic
+
+### consumer
+
+Simple consumer which reads from the same topic as `producer-api` and echos the message to console
 
 ### Local 
 
@@ -11,6 +17,10 @@ Run zookeeper, kafka and create needed topic:
 ~/dev/kafka_2.13-2.7.0/bin/kafka-server-start.sh ~/dev/kafka_2.13-2.7.0/config/server.properties
 
 bin/kafka-topics.sh --create --topic user-behaviour.events --replication-factor 1 --partitions 2 --zookeeper localhost:2181
+
+RUST_LOG=api=trace,tower_http=trace cargo run --bin producer-api
+
+cargo run --bin consumer
 ```
 
 Sample Request:

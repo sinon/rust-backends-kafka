@@ -1,5 +1,5 @@
 [workspace]
-members = ["producer-api", "consumer"]
+members = ["producer-api", "consumer", "newsletter_api"]
 resolver = "2"
 
 [workspace.package]

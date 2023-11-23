@@ -109,12 +109,12 @@ async fn create_event(
         i,
         j
     );
-    return (
+    (
         StatusCode::OK,
         Json(EventResponse {
             success: true,
             partition: i,
             offset: j,
         }),
-    );
+    )
 }

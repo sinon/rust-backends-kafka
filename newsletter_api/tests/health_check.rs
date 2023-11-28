@@ -1,7 +1,9 @@
+use sqlx::PgPool;
+
 mod common;
 
-#[tokio::test]
-async fn health_check_works() {
+#[sqlx::test]
+async fn health_check_works(db: PgPool) {
     let address = common::spawn_app().await;
 
     let client = reqwest::Client::new();

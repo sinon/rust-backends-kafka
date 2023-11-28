@@ -1494,6 +1494,7 @@ dependencies = [
  "shuttle-axum",
  "shuttle-runtime",
  "shuttle-shared-db",
+ "sqlx",
  "tokio",
  "tower",
  "tower-http 0.4.4",
@@ -2802,6 +2803,7 @@ dependencies = [
  "tokio-stream",
  "tracing",
  "url",
+ "uuid",
  "webpki-roots 0.24.0",
 ]
 
@@ -2883,6 +2885,7 @@ dependencies = [
  "stringprep",
  "thiserror",
  "tracing",
+ "uuid",
  "whoami",
 ]
 
@@ -2922,6 +2925,7 @@ dependencies = [
  "stringprep",
  "thiserror",
  "tracing",
+ "uuid",
  "whoami",
 ]
 
@@ -2945,6 +2949,7 @@ dependencies = [
  "sqlx-core",
  "tracing",
  "url",
+ "uuid",
 ]
 
 [[package]]

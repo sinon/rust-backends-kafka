@@ -1,9 +1,12 @@
 use std::collections::HashMap;
 
+use hyper::StatusCode;
+use sqlx::PgPool;
+
 mod common;
 
-#[tokio::test]
-async fn create_subscriber_works() {
+#[sqlx::test]
+async fn create_subscriber_works(db: PgPool) {
     let address = common::spawn_app().await;
 
     let mut map = HashMap::new();
@@ -17,9 +20,19 @@ async fn create_subscriber_works() {
         .send()
         .await
         .expect("Failed to execute request.");
-    assert!(response.status().is_success());
-    assert_eq!(
-        response.text().await.unwrap(),
-        "{\"id\":123,\"name\":\"Joe B\",\"email\":\"test@example.com\"}"
-    )
+    assert_eq!(response.status(), StatusCode::CREATED);
+
+    let resp_json: serde_json::Value = serde_json::from_slice(&response.bytes().await.unwrap())
+        .expect("failed to read response body as json");
+
+    assert_eq!(resp_json["name"], "Joe B");
+    assert_eq!(resp_json["email"], "test@example.com");
+
+    let _subcriber_id = common::expect_uuid(&resp_json["id"]);
+    todo!("Figure out setup/teardown of DB between runs");
+}
+
+#[sqlx::test]
+async fn create_subsciber_fails(db: PgPool) {
+    todo!("Add test that tries to create a duplicate subscriber");
 }

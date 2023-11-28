@@ -1,3 +1,5 @@
+use axum::{body::BoxBody, response::Response};
+use sqlx::types::Uuid;
 use tokio::net::TcpListener;
 
 pub async fn spawn_app() -> String {
@@ -8,7 +10,21 @@ pub async fn spawn_app() -> String {
     let port = listener.local_addr().unwrap().port();
     // Drop listener to free-up the selected port
     drop(listener);
-    let server = newsletter_api::run(port).expect("Failed to bind address");
+    let server = newsletter_api::run(port).await.unwrap();
     let _ = tokio::spawn(server);
     format!("http://127.0.0.1:{}", port)
+}
+
+#[track_caller]
+pub fn expect_string(value: &serde_json::Value) -> &str {
+    value
+        .as_str()
+        .unwrap_or_else(|| panic!("expected string, got {value:?}"))
+}
+
+#[track_caller]
+pub fn expect_uuid(value: &serde_json::Value) -> Uuid {
+    expect_string(value)
+        .parse::<Uuid>()
+        .unwrap_or_else(|e| panic!("failed to parse UUID from {value:?}: {e}"))
 }

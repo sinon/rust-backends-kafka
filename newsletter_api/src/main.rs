@@ -1,7 +1,13 @@
 use newsletter_api::generate_routes;
+use shuttle_runtime::CustomError;
+use sqlx::PgPool;
 
 #[shuttle_runtime::main]
-async fn main() -> shuttle_axum::ShuttleAxum {
-    let app = generate_routes();
-    Ok(app.into())
+async fn main(#[shuttle_shared_db::Postgres()] pool: PgPool) -> shuttle_axum::ShuttleAxum {
+    sqlx::migrate!()
+        .run(&pool)
+        .await
+        .map_err(CustomError::new)?;
+    let router = generate_routes(pool);
+    Ok(router.into())
 }

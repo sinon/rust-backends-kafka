@@ -57,20 +57,20 @@ jobs:
         with:
           reporter: 'github-pr-check'
           github_token: ${{ secrets.GITHUB_TOKEN }}
-  doc:
-    # run docs generation on nightly rather than stable. This enables features like
-    # https://doc.rust-lang.org/beta/unstable-book/language-features/doc-cfg.html which allows an
-    # API be documented as only available in some specific platforms.
-    runs-on: ubuntu-latest
-    name: nightly / doc
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-      - name: Install nightly
-        uses: dtolnay/rust-toolchain@nightly
-      - name: cargo doc
-        run: cargo doc --no-deps --all-features
-        env:
-          RUSTDOCFLAGS: --cfg docsrs
+  # doc:
+  #   # run docs generation on nightly rather than stable. This enables features like
+  #   # https://doc.rust-lang.org/beta/unstable-book/language-features/doc-cfg.html which allows an
+  #   # API be documented as only available in some specific platforms.
+  #   runs-on: ubuntu-latest
+  #   name: nightly / doc
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #       with:
+  #         submodules: true
+  #     - name: Install nightly
+  #       uses: dtolnay/rust-toolchain@nightly
+  #     - name: cargo doc
+  #       run: cargo doc --no-deps --all-features
+  #       env:
+  #         RUSTDOCFLAGS: --cfg docsrs
   

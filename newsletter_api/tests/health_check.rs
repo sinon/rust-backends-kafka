@@ -1,12 +1,14 @@
+use sqlx::PgPool;
+
 mod common;
 
-#[tokio::test]
-async fn health_check_works() {
-    let address = common::spawn_app().await;
+#[sqlx::test]
+async fn health_check_works(_db: PgPool) {
+    let test_app = common::spawn_app().await;
 
     let client = reqwest::Client::new();
     let response = client
-        .get(&format!("{}/healthcheck", &address))
+        .get(&format!("{}/healthcheck", &test_app.address))
         .send()
         .await
         .expect("Failed to execute request.");

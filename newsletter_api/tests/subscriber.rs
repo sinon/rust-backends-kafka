@@ -7,7 +7,7 @@ mod common;
 
 #[sqlx::test]
 async fn create_subscriber_works(db: PgPool) -> sqlx::Result<()> {
-    let address = common::spawn_app().await;
+    let test_app = common::spawn_app().await;
 
     let mut map = HashMap::new();
     map.insert("email", "test@example.com");
@@ -15,7 +15,7 @@ async fn create_subscriber_works(db: PgPool) -> sqlx::Result<()> {
 
     let client = reqwest::Client::new();
     let response = client
-        .post(&format!("{}/api/subscriber", &address))
+        .post(&format!("{}/api/subscriber", &test_app.address))
         .json(&map)
         .send()
         .await

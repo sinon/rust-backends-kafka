@@ -4,11 +4,11 @@ mod common;
 
 #[sqlx::test]
 async fn health_check_works(_db: PgPool) {
-    let address = common::spawn_app().await;
+    let test_app = common::spawn_app().await;
 
     let client = reqwest::Client::new();
     let response = client
-        .get(&format!("{}/healthcheck", &address))
+        .get(&format!("{}/healthcheck", &test_app.address))
         .send()
         .await
         .expect("Failed to execute request.");

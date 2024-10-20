@@ -1,7 +1,7 @@
-use axum::{body::BoxBody, response::Response};
 use sqlx::types::Uuid;
 use tokio::net::TcpListener;
 
+#[cfg(test)]
 pub async fn spawn_app() -> String {
     let listener = TcpListener::bind("127.0.0.1:0")
         .await
@@ -16,6 +16,7 @@ pub async fn spawn_app() -> String {
 }
 
 #[track_caller]
+#[cfg(test)]
 pub fn expect_string(value: &serde_json::Value) -> &str {
     value
         .as_str()
@@ -23,6 +24,7 @@ pub fn expect_string(value: &serde_json::Value) -> &str {
 }
 
 #[track_caller]
+#[cfg(test)]
 pub fn expect_uuid(value: &serde_json::Value) -> Uuid {
     expect_string(value)
         .parse::<Uuid>()

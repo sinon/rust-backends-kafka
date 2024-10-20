@@ -3,7 +3,7 @@ use sqlx::PgPool;
 mod common;
 
 #[sqlx::test]
-async fn health_check_works(db: PgPool) {
+async fn health_check_works(_db: PgPool) {
     let address = common::spawn_app().await;
 
     let client = reqwest::Client::new();

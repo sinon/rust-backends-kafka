@@ -10,8 +10,6 @@ pub struct TestApp {
 
 #[cfg(test)]
 pub async fn spawn_app() -> TestApp {
-    // use hyper::client::conn;
-
     let listener = TcpListener::bind("127.0.0.1:0")
         .await
         .expect("Failed to bind random port");

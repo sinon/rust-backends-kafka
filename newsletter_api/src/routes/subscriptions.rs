@@ -21,6 +21,7 @@ pub async fn create_subscriber(
     State(_state): State<AppState>,
     Json(payload): Json<CreateSubscriber>,
 ) -> Result<impl IntoResponse, impl IntoResponse> {
+    tracing::info!("Creating subscriber.");
     match sqlx::query_as!(
         Subscriber,
         "INSERT INTO subscriber (name, email) VALUES ($1, $2) RETURNING id, name, email",
@@ -30,7 +31,13 @@ pub async fn create_subscriber(
     .fetch_one(&_state.pool)
     .await
     {
-        Ok(subscriber) => Ok((StatusCode::CREATED, Json(subscriber))),
-        Err(e) => Err((StatusCode::BAD_REQUEST, e.to_string())),
+        Ok(subscriber) => {
+            tracing::info!("New Subscriber sucessfully created");
+            Ok((StatusCode::CREATED, Json(subscriber)))
+        }
+        Err(e) => {
+            tracing::error!("Failed to execute query: {:?}", e);
+            Err((StatusCode::BAD_REQUEST, e.to_string()))
+        }
     }
 }
